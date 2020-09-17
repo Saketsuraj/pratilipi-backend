@@ -14,7 +14,7 @@ const TotalCount = require("../model/TotalCount");
 const io = require('socket.io').listen(7777);
 
 var currentUsers = [];
-
+io.origins('*:*')
 io.sockets.on('connection', function(socket) {
   
   socket.on('setup', function(data) {
