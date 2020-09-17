@@ -10,6 +10,7 @@ const auth = require("../middleware/auth");
 
 const User = require("../model/User");
 const SaveStory = require("../model/SaveStory");
+const TotalCount = require("../model/TotalCount");
 
 /**
  * @method - POST
@@ -244,42 +245,90 @@ router.get(
 
 //Read count API
 router.post(
-  "/count",
+  "/total/count",
   async (req, res) => {
-    let readcount=0;
-    let count={};
-    let visitedUsers = {};
-    let finalList = [];
-    let arrayUsers=[];
-    const { title } = req.body;
-    global[title]=0;
-    let email = req.body.email;
-    console.log(email);
-    if (visitedUsers[title] === undefined) {
-      arrayUsers.push(email);
-      finalList.push(arrayUsers[0]);
-      visitedUsers[title]= finalList;
-      global[title] =  global[title]+1;
-      count[title]= global[title];
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array()
+      });
     }
-    if(visitedUsers[title] !== undefined){
-      if(!visitedUsers[title].includes(email)){
-        arrayUsers.push(email);
-        finalList.push(arrayUsers[0]);
-        visitedUsers[title]= finalList;
-        global[title] =  global[title]+1;
-        count[title]= global[title];
+
+    const { email, _id  } = req.body;
+  
+    try {
+      let user = await User.findOne({
+        email
+      });
+      let storyid = await SaveStory.findOne({
+        _id
+      });
+      if (user && storyid) {
+        let story_id = _id;
+        let checkCurrentUserStatus = await TotalCount.findOne({
+          email,
+          story_id
+        });
+        if(checkCurrentUserStatus === null){
+          countdata = new TotalCount({
+            story_id,
+            email
+          });
+          await countdata.save();
+        }
+
+        let userDataStatus = await TotalCount.find({}); //To fetch total stories
+        return res.status(200).json({
+          msg: "Total Count Data",
+          count: userDataStatus.length
+        });
       }
+      else{
+        if ((user !== null) && (storyid === null)) {
+          return res.status(400).json({
+            msg: "Valid user, Invalid story"
+          });
+        }
+        else if(user === null){
+          return res.status(400).json({
+            msg: "Invalid User"
+          });
+        }
+      }
+      
+
+      // user = new User({
+      //   title,
+      //   content
+      // });
+
+      // await stories.save();
+
+      // const payload = {
+      //   stories: {
+      //     id: stories.id
+      //   }
+      // };
+
+      // jwt.sign(
+      //   payload,
+      //   "randomString",
+      //   {
+      //     expiresIn: 10000
+      //   },
+      //   (err, token) => {
+      //     if (err) throw err;
+      //     res.status(200).json({
+      //       "storytoken":token
+      //     });
+      //   }
+      // );
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send("Error in Saving");
     }
-    console.log(visitedUsers);
-    console.log(count);
-
-
-    res.send({"visitedUsers":visitedUsers, "count":count});
   }
 );
-
 
 
 module.exports = router;
