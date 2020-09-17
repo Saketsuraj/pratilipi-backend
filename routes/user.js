@@ -277,7 +277,9 @@ router.post(
           await countdata.save();
         }
 
-        let userDataStatus = await TotalCount.find({}); //To fetch total stories
+        let userDataStatus = await TotalCount.find({
+          story_id
+        }); //To fetch total stories
         return res.status(200).json({
           msg: "Total Count Data",
           count: userDataStatus.length
