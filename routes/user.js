@@ -11,23 +11,34 @@ const auth = require("../middleware/auth");
 const User = require("../model/User");
 const SaveStory = require("../model/SaveStory");
 const TotalCount = require("../model/TotalCount");
-var io = require('socket.io').listen(7777);
+
+var server = express().listen(7777);
+var io = require('socket.io').listen(server);
 
 var currentUsers = [];
+var count = 0;
 io.origins('*:*')
 io.sockets.on('connection', function(socket) {
-  
+  var result;
   socket.on('setup', function(data) {
       // use your connection specific config variables like
-      console.log(data);
-      parser.addListener('end', function(result) {
-          socket.volatile.emit('notification', result);
+      let result = currentUsers.findIndex(function(object) {
+        return object.story === data.story && object.username === data.username;
       });
+      if(result !== -1){
+        currentUsers.splice(result, 1);
+      }
+      currentUsers.push(data);
+      currentUsers.forEach((obj)=>{
+        if(obj.story === data.story && obj.username === data.username){
+          count++;
+        }
+      })
   });
-  io.sockets.emit('message', { data: currentUsers });
+  io.sockets.emit('message', { data: count });
 
-  io.sockets.on('disconnect', function(){
-      io.sockets.emit('message', { data: currentUsers });
+  io.sockets.on('disconnect', function(data){
+      io.sockets.emit('message', { data: count });
   })
 });
 /**
