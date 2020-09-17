@@ -11,7 +11,7 @@ const auth = require("../middleware/auth");
 const User = require("../model/User");
 const SaveStory = require("../model/SaveStory");
 const TotalCount = require("../model/TotalCount");
-const io = require('socket.io').listen(7777);
+var io = require('socket.io').listen(7777);
 
 var currentUsers = [];
 io.origins('*:*')
