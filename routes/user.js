@@ -13,10 +13,17 @@ const SaveStory = require("../model/SaveStory");
 const TotalCount = require("../model/TotalCount");
 const io = require('socket.io').listen(7777);
 
-var count = 0;
+var currentUsers = [];
 
 io.sockets.on('connection', function(socket) {
-  count++;
+  
+  socket.on('setup', function(data) {
+      // use your connection specific config variables like
+      console.log(data);
+      parser.addListener('end', function(result) {
+          socket.volatile.emit('notification', result);
+      });
+  });
   io.sockets.emit('message', { count: count });
 
   io.sockets.on('disconnect', function(){
