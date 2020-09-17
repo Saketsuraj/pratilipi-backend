@@ -24,11 +24,10 @@ io.sockets.on('connection', function(socket) {
           socket.volatile.emit('notification', result);
       });
   });
-  io.sockets.emit('message', { count: count });
+  io.sockets.emit('message', { data: currentUsers });
 
   io.sockets.on('disconnect', function(){
-      count--;
-      io.sockets.emit('message', { count: count });
+      io.sockets.emit('message', { data: currentUsers });
   })
 });
 /**
